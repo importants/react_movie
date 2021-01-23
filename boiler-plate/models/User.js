@@ -2,8 +2,8 @@ const mongoose = require(`mongoose`);
 
 const userSchema = mongoose.Schema({
   name: {
-    name: String,
-    maxlength: 50,
+    type: String,
+    maxLength: 50,
   },
   email: {
     type: String,
@@ -12,11 +12,11 @@ const userSchema = mongoose.Schema({
   },
   password: {
     type: String,
-    minlength: 5,
+    minLength: 5,
   },
   lastname: {
     type: String,
-    maxlength: 50,
+    maxLength: 50,
   },
   role: {
     type: Number,
@@ -29,4 +29,6 @@ const userSchema = mongoose.Schema({
   tokenExp: { type: Number },
 });
 
-const User = mongoose.model(`User`, userSchema);
+const User = mongoose.model(`User`, userSchema); // 모델의 모델 User-> 스키마 UserSchema
+
+module.exports = { User };
