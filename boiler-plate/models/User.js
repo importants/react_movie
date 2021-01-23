@@ -64,7 +64,7 @@ userSchema.methods.comparePassword = function (plainPassword, callback) {
 userSchema.methods.generateToken = function (callback) {
   //jsonwebtoken 이용해서 token을 생성하기
   let user = this;
-  let token = jwt.sign(user._id, `secretToken`);
+  let token = jwt.sign(user._id.toHexString(), `secretToken`); //Expected "payload" to be a plain object. -> toHexString()=> 16진수
 
   user.token = token;
   user.save(function (err, user) {

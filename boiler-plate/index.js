@@ -79,7 +79,10 @@ app.post(`/login`, (req, res) => {
         // user 안에 토큰이 들어있다 토큰은 쿠키에 or 로컬스토리지에 저장 -> 쿠키를 깔자 cookie-parser
         if (err) return res.status(400).send(err);
 
-        res.cookie(`x_auth`); // x_auth 쿠키에 토큰이 저장
+        res
+          .cookie(`x_auth`, user.token)
+          .status(200)
+          .json({ loginSuccess: true, userId: user._id }); // x_auth 쿠키에 토큰이 저장
       }); //함수이름 바꿔도 됨
     });
   });
