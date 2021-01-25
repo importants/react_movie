@@ -2,11 +2,12 @@
 
 const express = require("express"); // 모듈을 가지고 온다
 const app = express(); // 앱을 만든다
-const port = 5000; // 포트 생성
+
 const bodyParser = require(`body-parser`);
 const config = require(`./config/key`);
 const { User } = require("./models/User");
 const cookieParser = require(`cookie-parser`);
+const { auth } = require(`./middleware/auth`);
 
 //appication/x-www-form-urlencoded 데이터를 가져오는 것
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -30,12 +31,7 @@ mongoose
   .then(() => console.log(`MongoDB Contected`))
   .catch((err) => console.log(err));
 
-app.get("/", (req, res) => {
-  // root 디렉토리에 오면 hello 출력하게함 -> 라우터
-  res.send("Hello World!");
-});
-
-app.post("/register", (req, res) => {
+app.post("/api/users/register", (req, res) => {
   //회원 가입 할떄 필요한 정보들을  client에서 가져오면
   //그것들을  데이터 베이스에 넣어준다.
   //   {
@@ -54,7 +50,8 @@ app.post("/register", (req, res) => {
   });
 });
 
-app.post(`/login`, (req, res) => {
+app.post(`/api/users/login`, (req, res) => {
+  // 로그인 라우터
   // 요청된 이메일을 데이터베이스에서 있는 지 찾는다.
   User.findOne({ email: req.body.email }, (err, user) => {
     // 요청된 이메일을 findOne에서 찾고 그것에 대한 응답을 json 형식으로 보낸다.
@@ -87,10 +84,51 @@ app.post(`/login`, (req, res) => {
     });
   });
   //요청된 이메일이 데이터 베이스에 있다면 비밀번호가 맞는 비밀번호 인지 확인
-
   // 비밀번호 까지 맞다면 토큰을 생성하기
 });
 
+app.post(`api/users/auth`, auth, (req, res) => {
+  // auth가 실행 된다면
+  // callback 함수 부르기 전에 auth 사용
+  // 여기 까지 미들웨어를 통과해 왔다는 얘기는 authentication 이 true 라는 말
+  res.status(200).json({
+    _id: req.user._id,
+    //role 1 어드민 role 2 특정 부서 어드민라면 밑에 있는 식 달라질 수 있음
+    //밑 식은 role ->0 일반유저 role -> 1 관리자 다.
+    isAdmin: req.user.role === 0 ? false : true,
+    isAuth: true,
+    email: req.user.email,
+    name: req.user.name,
+    lastname: req.user.lastname,
+    role: req.user.role,
+    image: req.user.image,
+  });
+});
+
+app.get(`/api/users/logout`, auth /*로그인 한 상태기 때문 */, (req, res) => {
+  User.findOneAndUpdate(
+    { _id: req.user._id } /*아이디 찾기*/,
+    { token: "" } /*변경하고 싶은 것 -> ""로 지워주기*/,
+    (err, user) => {
+      if (err) return res.json({ success: false, err });
+      return res.status(200).send({ success: true });
+    }
+  );
+});
+
+/*---------------------------------------------*/
+
+app.get("/", (req, res) => {
+  // root 디렉토리에 오면 hello 출력하게함 -> 라우터
+  res.send("Hello World!");
+});
+
+app.get(`/api/hello`, (req, res) => {
+  res.send(`hello world~~`);
+});
+
+/*---------------------------------------------*/
+const port = 5000; // 포트 생성
 app.listen(port, () => {
   // 5000번에서 실행하게 함
   console.log(`Example app listening at http://localhost:${port}`);
@@ -102,3 +140,5 @@ app.listen(port, () => {
 // 비밀번호 노출 안되게 하기 위해 yarn add bcrypt --save
 // 비밀번호 맞다면 유저의 토큰을 생성해야한다 yarn add jsonwebtoken --save
 //yarn add cookie-parser --save
+//Auth -> 사이트의 여러가지 페이지를 로그인 되있는 or 로그인 안되있는 것을 구분 -> 하나하나 체크하기 위해서 cookie를 계속 비교 (decode) -> user.id
+//logout : 로그 아웃하려는 유저를 데이터베이스에서 찾아서 ->토큰 지워주기 -> 로그인 기능 풀려버림
