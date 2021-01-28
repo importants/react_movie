@@ -87,7 +87,7 @@ app.post(`/api/users/login`, (req, res) => {
   // 비밀번호 까지 맞다면 토큰을 생성하기
 });
 
-app.post(`api/users/auth`, auth, (req, res) => {
+app.get(`/api/users/auth`, auth, (req, res) => {
   // auth가 실행 된다면
   // callback 함수 부르기 전에 auth 사용
   // 여기 까지 미들웨어를 통과해 왔다는 얘기는 authentication 이 true 라는 말
